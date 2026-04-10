@@ -1,0 +1,81 @@
+#!/bin/zsh
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/claude-with.config.json"
+HISTORY_SCRIPT="$SCRIPT_DIR/claude-history.py"
+INPUT_KEY="$1"
+RESUME_UUID=""
+
+# 1. 环境检查
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Error: Configuration file not found at $CONFIG_FILE"
+    exit 1
+fi
+
+if ! command -v jq > /dev/null; then
+    echo "Error: 'jq' is not installed."
+    exit 1
+fi
+
+# 2. 参数解析 (统一入口，避免重复调用)
+if [ "$INPUT_KEY" = "list" ]; then
+    echo "Available model configurations:"
+    echo "--------------------------------------------------"
+    jq -r 'to_entries | .[] | select(.key != "default") | "  - \(.key): \(.value.ANTHROPIC_MODEL // "System Default")"' "$CONFIG_FILE"
+    echo "--------------------------------------------------"
+    DEFAULT_MODEL=$(jq -r '.default.ANTHROPIC_MODEL' "$CONFIG_FILE")
+    [ "$DEFAULT_MODEL" = "null" ] || [ -z "$DEFAULT_MODEL" ] && DEFAULT_MODEL="System Default"
+    echo "Default configuration: $DEFAULT_MODEL"
+    exit 0
+
+elif [ "$INPUT_KEY" = "history" ]; then
+    # 只调用一次 Python 菜单
+    SELECTION=$(python3 "$HISTORY_SCRIPT" menu < /dev/tty)
+    [ $? -ne 0 ] || [ -z "$SELECTION" ] && exit 0
+    
+    # 解析 Python 输出的最后一行
+    FINAL_LINE=$(echo "$SELECTION" | tail -n 1)
+    read -r TARGET_KEY RESUME_UUID <<< "$FINAL_LINE"
+    shift 1
+
+elif [ -z "$INPUT_KEY" ]; then
+    TARGET_KEY="default"
+
+else
+    # 正常别名匹配
+    KEY_EXISTS=$(jq "has(\"$INPUT_KEY\")" "$CONFIG_FILE")
+    if [ "$KEY_EXISTS" = "true" ]; then
+        TARGET_KEY="$INPUT_KEY"
+        shift 1
+    else
+        echo "Error: Configuration '$INPUT_KEY' not found."
+        echo "Use 'claude-with list' to see available options."
+        exit 114514
+    fi
+fi
+
+# 3. 加载环境变量
+ALL_VARS=$(jq -r "(.default * (.\"$TARGET_KEY\" // {})) | to_entries | .[] | \"export \(.key)=\\\"\(.value)\\\"\"" "$CONFIG_FILE" 2>/dev/null)
+if [ -z "$ALL_VARS" ] || [ "$ALL_VARS" = "null" ]; then
+    echo "Error: Failed to process configuration."
+    exit 1
+fi
+eval "$ALL_VARS"
+
+# 4. 运行提示
+echo "Loaded configuration: [ $TARGET_KEY ]"
+echo "Current Model: ${ANTHROPIC_MODEL:-System Default}"
+
+# 5. 执行录制与运行
+LOG_FILE="/tmp/claude_session_$$.log"
+if [ -n "$RESUME_UUID" ]; then
+    echo "Resuming session: $RESUME_UUID"
+    script -q "$LOG_FILE" claude --resume "$RESUME_UUID" "$@"
+else
+    echo "Starting Claude Code..."
+    script -q "$LOG_FILE" claude "$@"
+fi
+
+# 6. 保存历史记录
+python3 "$HISTORY_SCRIPT" save "$TARGET_KEY" "$LOG_FILE"
+rm -f "$LOG_FILE"

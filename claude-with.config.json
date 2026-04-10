@@ -1,0 +1,24 @@
+{
+    "default": {
+        "OPENROUTER_API_KEY": "<YOUR-API-KEY>",
+        "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
+        "ANTHROPIC_AUTH_TOKEN": "$OPENROUTER_API_KEY",
+        "ANTHROPIC_API_KEY": "",
+        "CLAUDE_CODE_NO_FLICKER": "1"
+    },
+    "glm": {
+        "ANTHROPIC_MODEL": "z-ai/glm-5.1"
+    },
+    "gemini-pro": {
+        "ANTHROPIC_MODEL": "google/gemini-3.1-pro-preview"
+    },
+    "gemini-flash": {
+        "ANTHROPIC_MODEL": "google/gemini-3-flash-preview"
+    },
+    "qwen-coder": {
+        "ANTHROPIC_MODEL": "qwen/qwen3-coder"
+    },
+    "qwen-coder-free": {
+        "ANTHROPIC_MODEL": "qwen/qwen3-coder:free"
+    }
+}
