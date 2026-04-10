@@ -77,11 +77,13 @@ claude-with gemini-flash --dangerously-skip-permissions
 
 2. 使 `claude-with` 可执行：`chmod +x claude-with`
 
-3. 将该目录添加到您的 `PATH` 路径，或为其设置别名：`alias claude-with=/path/to/claude-with`
+3. 安装依赖项
+
+4. 将该目录添加到您的 `PATH` 路径，或为其设置别名：`alias claude-with=/path/to/claude-with`
 
 ### 依赖项
 
-- [jq](https://jstedman.github.io/jq/) — JSON 解析
+- [jq](https://jqlang.org/) — JSON 解析
 
 - Python 3 — 历史记录管理
 

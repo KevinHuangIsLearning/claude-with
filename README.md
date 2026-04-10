@@ -72,13 +72,17 @@ History is stored in `claude_history.json` in the same directory as the scripts 
 
 ## Installation
 
-1. Clone or copy all files (`claude-with`, `claude-history.py`, `claude-with.config.json`) into a directory of your choice
+1. Clone or download all files (`claude-with`, `claude-history.py`, `claude-with.config.json`) into a directory of your choice
+
 2. Make `claude-with` executable: `chmod +x claude-with`
-3. Add the directory to your `PATH`, or alias it: `alias claude-with=/path/to/claude-with`
+
+3. Install dependencies
+
+4. Add the directory to your `PATH`, or alias it: `alias claude-with=/path/to/claude-with`
 
 ### Dependencies
 
-- [jq](https://jstedman.github.io/jq/) — JSON parsing
+- [jq](https://jqlang.org/) — JSON parsing
 - Python 3 — History management
 - `script` — Session recording (built into macOS/Linux)
 
